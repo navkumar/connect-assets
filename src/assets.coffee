@@ -125,7 +125,7 @@ class ConnectAssets
         cacheFlags = {expires: @options.buildsExpire, mtime}
         @cache.set filename, img, cacheFlags
         if @options.buildDir
-          buildPath = path.join process.cwd(), @options.buildDir, filename
+          buildPath = path.resolve process.cwd(), @options.buildDir, filename
           mkdirRecursive path.dirname(buildPath), 0o0755, ->
             fs.writeFile buildPath, img
         return @cachedRoutePaths[route] = "/#{filename}"
@@ -192,7 +192,7 @@ class ConnectAssets
           cacheFlags = {expires: @options.buildsExpire, mtime}
           @cache.set filename, css, cacheFlags
           if @options.buildDir
-            buildPath = path.join process.cwd(), @options.buildDir, filename
+            buildPath = path.resolve process.cwd(), @options.buildDir, filename
             mkdirRecursive path.dirname(buildPath), 0o0755, ->
               fs.writeFile buildPath, css
           return @cachedRoutePaths[route] = "/#{filename}"
@@ -221,7 +221,7 @@ class ConnectAssets
               cacheFlags = expires: @options.buildsExpire
               @cache.set filename, concatenation, cacheFlags
               if buildDir = @options.buildDir
-                buildPath = path.join process.cwd(), buildDir, filename
+                buildPath = path.resolve process.cwd(), buildDir, filename
                 mkdirRecursive path.dirname(buildPath), 0o0755, (err) ->
                   fs.writeFile buildPath, concatenation
             else
