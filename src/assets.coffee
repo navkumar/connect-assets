@@ -19,6 +19,7 @@ module.exports = exports = (options = {}) ->
   options.helperContext ?= global
   if process.env.NODE_ENV is 'production'
     options.build ?= true
+    options.suppressWarnings ?= true
     cssCompilers.styl.compress ?= true
     cssCompilers.less.compress ?= true
   options.servePath ?= ''
@@ -29,6 +30,7 @@ module.exports = exports = (options = {}) ->
   options.minifyBuilds ?= true
   options.pathsOnly ?= false
   options.forceRemote ?= false
+  options.suppressWarnings ?= false
   jsCompilers = _.extend jsCompilers, options.jsCompilers || {}
 
   connectAssets = module.exports.instance = new ConnectAssets options
@@ -144,7 +146,7 @@ class ConnectAssets
     try
       resolvedPath = @options.helperContext.img resolvedPath
     catch e
-      console.error "Can't resolve image path: #{resolvedPath}"
+      console.error "Can't resolve image path: #{resolvedPath}" unless @options.suppressWarnings
     return "url('#{resolvedPath}')"
 
   fixCSSImagePaths: (css) ->
