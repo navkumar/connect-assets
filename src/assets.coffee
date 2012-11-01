@@ -20,6 +20,8 @@ module.exports = exports = (options = {}) ->
   if process.env.NODE_ENV is 'production'
     options.build ?= true
     options.suppressWarnings ?= true
+  if options.build
+    cssCompilers.css.compress ?= true
     cssCompilers.styl.compress ?= true
     cssCompilers.less.compress ?= true
   options.servePath ?= ''
@@ -31,6 +33,7 @@ module.exports = exports = (options = {}) ->
   options.pathsOnly ?= false
   options.forceRemote ?= false
   options.suppressWarnings ?= false
+  options.syncWrites ?= false
   jsCompilers = _.extend jsCompilers, options.jsCompilers || {}
 
   connectAssets = module.exports.instance = new ConnectAssets options
@@ -130,8 +133,11 @@ class ConnectAssets
         @cache.set filename, img, cacheFlags
         if @options.buildDir
           buildPath = path.resolve process.cwd(), @options.buildDir, filename
-          mkdirRecursive path.dirname(buildPath), 0o0755, ->
-            fs.writeFile buildPath, img
+          mkdirRecursive path.dirname(buildPath), 0o0755, =>
+            if @options.syncWrites
+              fs.writeFileSync buildPath, img
+            else
+              fs.writeFile buildPath, img
         return @cachedRoutePaths[route] = "/#{filename}"
       else
         @cache.set route, img, {mtime}
@@ -168,8 +174,9 @@ class ConnectAssets
             alreadyCached = true
           else
             {mtime} = stats
-            css = (fs.readFileSync @absPath(sourcePath)).toString 'utf8'
-            css = @fixCSSImagePaths css
+            # css = (fs.readFileSync @absPath(sourcePath)).toString 'utf8'
+            # css = @fixCSSImagePaths css
+            css = cssCompilers[ext].compileSync @absPath(sourcePath), source
         else
           if timeEq stats.mtime, @cssSourceFiles[sourcePath]?.mtime
             source = @cssSourceFiles[sourcePath].data.toString 'utf8'
@@ -197,8 +204,11 @@ class ConnectAssets
           @cache.set filename, css, cacheFlags
           if @options.buildDir
             buildPath = path.resolve process.cwd(), @options.buildDir, filename
-            mkdirRecursive path.dirname(buildPath), 0o0755, ->
-              fs.writeFile buildPath, css
+            mkdirRecursive path.dirname(buildPath), 0o0755, =>
+              if @options.syncWrites
+                fs.writeFileSync buildPath, css
+              else
+                fs.writeFile buildPath, css
           return @cachedRoutePaths[route] = "/#{filename}"
         else
           @cache.set route, css, {mtime}
@@ -226,8 +236,11 @@ class ConnectAssets
               @cache.set filename, concatenation, cacheFlags
               if buildDir = @options.buildDir
                 buildPath = path.resolve process.cwd(), buildDir, filename
-                mkdirRecursive path.dirname(buildPath), 0o0755, (err) ->
-                  fs.writeFile buildPath, concatenation
+                mkdirRecursive path.dirname(buildPath), 0o0755, (err) =>
+                  if @options.syncWrites
+                    fs.writeFileSync buildPath, concatenation
+                  else
+                    fs.writeFile buildPath, concatenation
             else
               filename = @buildFilenames[sourcePath]
           snocketsFlags = minify: @options.minifyBuilds, async: false
@@ -248,6 +261,23 @@ class ConnectAssets
 
 # ## Asset compilers
 exports.cssCompilers = cssCompilers =
+
+  css:
+    optionsMap: {}
+    compileSync: (sourcePath, source) ->
+      result = ''
+      callback = (err, js) ->
+        throw err if err
+        result = js
+
+      options = @optionsMap[sourcePath] ?= {}
+      file = path.resolve(sourcePath, source)
+      css = fs.readFileSync(file, 'utf8')
+      libs.cleanCSS or= try require 'clean-css' catch e then null
+      if @compress && libs.cleanCSS
+        libs.cleanCSS.process(css, options)
+      else
+        css
 
   styl:
     optionsMap: {}
