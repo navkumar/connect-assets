@@ -2,7 +2,7 @@
   "author": "Navin Kumar (http://about.me/navkumar)",
   "name": "connect-assets",
   "description": "A Rails-like asset pipeline for Connect. Forked from Trevor Burnham (http://github.com/TrevorBurnham/connect-assets)",
-  "version": "2.3.4",
+  "version": "2.3.3",
   "homepage": "http://github.com/navkumar/connect-assets",
   "repository": {
     "type": "git",

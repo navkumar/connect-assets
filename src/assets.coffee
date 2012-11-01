@@ -28,6 +28,7 @@ module.exports = exports = (options = {}) ->
   options.detectChanges ?= true
   options.minifyBuilds ?= true
   options.pathsOnly ?= false
+  options.forceRemote ?= false
   jsCompilers = _.extend jsCompilers, options.jsCompilers || {}
 
   connectAssets = module.exports.instance = new ConnectAssets options
@@ -66,7 +67,7 @@ class ConnectAssets
 
     context.css = (route) =>
       route = expandRoute route, '.css', context.css.root
-      unless route.match REMOTE_PATH
+      unless route.match REMOTE_PATH || @options.forceRemote
         route = @options.servePath + @compileCSS route
       return route if @options.pathsOnly
       "<link rel='stylesheet' href='#{route}'>"
@@ -75,7 +76,7 @@ class ConnectAssets
     context.js = (route, routeOptions) =>
       loadingKeyword = ''
       route = expandRoute route, '.js', context.js.root
-      if route.match REMOTE_PATH
+      if route.match REMOTE_PATH || @options.forceRemote
         routes = [route]
       else if srcIsRemote
         routes = ["#{@options.src}/#{route}"]
