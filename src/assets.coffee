@@ -146,7 +146,7 @@ class ConnectAssets
     try
       resolvedPath = @options.helperContext.img resolvedPath
     catch e
-      console.error "Can't resolve image path: #{resolvedPath}" unless @options.suppressWarnings
+      # console.error "Can't resolve image path: #{resolvedPath}"
     return "url('#{resolvedPath}')"
 
   fixCSSImagePaths: (css) ->
