@@ -60,7 +60,7 @@ class ConnectAssets
     context = @options.helperContext
     srcIsRemote = @options.src.match REMOTE_PATH
     expandRoute = (shortRoute, ext, rootDir) ->
-      # context.js.root = context.js.root[1..] if context.js.root[0] is '/'
+      context.js.root = context.js.root[1..] if context.js.root[0] is '/'
       if shortRoute.match EXPLICIT_PATH
         unless shortRoute.match(REMOTE_PATH)
           if shortRoute[0] is '/' then shortRoute = shortRoute[1..]
@@ -74,6 +74,7 @@ class ConnectAssets
       route = expandRoute route, '.css', context.css.root
       unless route.match(REMOTE_PATH) || @options.forceRemote
         route = @options.servePath + @compileCSS route
+      route = "/#{route}" if @options.forceRemote
       return route if @options.pathsOnly
       "<link rel='stylesheet' href='#{route}'>"
     context.css.root = 'css'
@@ -81,8 +82,10 @@ class ConnectAssets
     context.js = (route, routeOptions) =>
       loadingKeyword = ''
       route = expandRoute route, '.js', context.js.root
-      if route.match(REMOTE_PATH) || @options.forceRemote
+      if route.match(REMOTE_PATH)
         routes = [route]
+      else if @options.forceRemote
+        routes = ["/#{route}"]
       else if srcIsRemote
         routes = ["#{@options.src}/#{route}"]
       else
