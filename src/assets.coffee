@@ -92,7 +92,7 @@ class ConnectAssets
         routes = (@options.servePath + p for p in @compileJS route)
 
       return routes if @options.pathsOnly
-      if routeOptions? and @options.build
+      if routeOptions? #and @options.build
         loadingKeyword = 'async ' if routeOptions.async?
         loadingKeyword = 'defer ' if routeOptions.defer?
 
